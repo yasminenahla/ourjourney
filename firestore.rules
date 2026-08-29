@@ -1,0 +1,19 @@
+rules_version = '2';
+
+// Paste this into Firebase Console -> Firestore Database -> Rules.
+//
+// This app has no login screen, so anyone who has your app's live URL and
+// the (client-visible) Firebase config can read/write this collection --
+// that's the tradeoff for "no sign-in needed, just open the link." If you
+// want real access control later, add Firebase Auth (e.g. anonymous auth
+// restricted to two allow-listed UIDs) and tighten these rules to match.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /wt_shared/{docId} {
+      allow read, write: if true;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
