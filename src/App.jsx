@@ -2511,6 +2511,9 @@ function InspirationBoard({ inspiration, setInspiration }) {
 
 
 /* ===== p12_app.jsx ===== */
+const CLIENT_ID = Math.random().toString(36).slice(2);
+const REFRESH_SIGNAL_SEED = { ts: 0, by: "" };
+
 const NAV = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "wedding", label: "Wedding Budget", icon: Wallet },
@@ -2549,17 +2552,38 @@ function App() {
   const [keyDates, setKeyDates, l14, reload14] = useShared("wt-key-dates", KEY_DATES_SEED);
   const [giftsGroom, setGiftsGroom, l15, reload15] = useShared("wt-gifts-groom", GIFTS_GROOMSMEN_SEED);
   const [giftsBride, setGiftsBride, l16, reload16] = useShared("wt-gifts-bride", GIFTS_BRIDESMAIDS_SEED);
+  const [refreshSignal, setRefreshSignal, l17, reload17] = useShared("wt-refresh-signal", REFRESH_SIGNAL_SEED);
 
-  const allLoaded = [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16].every(Boolean);
+  const allLoaded = [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17].every(Boolean);
 
-  const refreshAll = async () => {
+  const doRefreshAll = useCallback(async (broadcast) => {
     setSyncing(true);
     await Promise.all([
       reload1(), reload2(), reload3(), reload4(), reload5(), reload6(), reload7(), reload8(),
       reload9(), reload10(), reload11(), reload12(), reload13(), reload14(), reload15(), reload16(),
     ]);
+    if (broadcast) setRefreshSignal({ ts: Date.now(), by: CLIENT_ID });
     setTimeout(() => setSyncing(false), 500);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const refreshAll = () => doRefreshAll(true);
+
+  // Mirror a refresh triggered from another device: once fully loaded, watch
+  // the shared refresh signal and re-sync (without re-broadcasting) whenever
+  // it changes from someone else's click.
+  const lastSeenRefresh = useRef(null);
+  useEffect(() => {
+    if (!allLoaded) return;
+    if (lastSeenRefresh.current === null) {
+      lastSeenRefresh.current = refreshSignal.ts;
+      return;
+    }
+    if (refreshSignal.ts !== lastSeenRefresh.current) {
+      lastSeenRefresh.current = refreshSignal.ts;
+      if (refreshSignal.by !== CLIENT_ID) doRefreshAll(false);
+    }
+  }, [allLoaded, refreshSignal, doRefreshAll]);
 
   const goTo = (key) => {
     setPage(key);
