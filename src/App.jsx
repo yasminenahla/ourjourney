@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Wallet, Store, Plane, MapPinned, Users2, ClipboardCheck,
   ListChecks, PiggyBank, Plus, Trash2, Check, ChevronDown, ChevronRight,
   ExternalLink, RefreshCw, Sparkles, Waves, Home as HomeIcon, Calendar,
-  ArrowRight, X, Pencil, Star, Menu, Palette, ImageOff,
+  ArrowRight, X, Pencil, Star, Menu, Palette, ImageOff, Gift,
 } from "lucide-react";
 import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { db } from "./lib/firebaseClient";
@@ -50,28 +50,30 @@ function useMobileSafety() {
 }
 
 const T = {
-  bg: "#0F2830",
-  bgSoft: "#15333C",
-  card: "#193C46",
-  cardHover: "#1E4750",
-  line: "#2A5560",
-  lineSoft: "#22454F",
-  ink: "#F3ECDD",
-  inkMute: "#A9C2C4",
-  inkFaint: "#7C9A9C",
-  gold: "#CBA35C",
-  goldSoft: "#E8D5A8",
-  rose: "#DE8C82",
-  roseSoft: "#F0BDB4",
-  sage: "#8FB89B",
-  danger: "#DE8C82",
+  bg: "#FCF6EF",
+  bgSoft: "#F7EADC",
+  card: "#FFFFFF",
+  cardHover: "#FFF9F1",
+  line: "#EEDDCB",
+  lineSoft: "#F3E7D8",
+  ink: "#4A3B34",
+  inkMute: "#8C7A6E",
+  inkFaint: "#B8A99C",
+  onAccent: "#4A3B34",
+  gold: "#E3AD6E",
+  goldSoft: "#F4DBB1",
+  rose: "#F0A6A6",
+  roseSoft: "#F8CFCF",
+  sage: "#A3C79A",
+  sky: "#A9C6E8",
+  danger: "#E2685A",
 };
 
 const CATEGORY_META = {
   wedding: { label: "Wedding", color: T.gold, icon: Sparkles },
   bride: { label: "Bride Prep", color: T.roseSoft, icon: Users2 },
   groom: { label: "Groom Prep", color: T.sage, icon: Users2 },
-  honeymoon: { label: "Honeymoon", color: "#7FB3D5", icon: Waves },
+  honeymoon: { label: "Honeymoon", color: T.sky, icon: Waves },
   bach: { label: "Bach Trips", color: T.rose, icon: Plane },
   household: { label: "Household", color: T.inkMute, icon: HomeIcon },
 };
@@ -204,7 +206,7 @@ function EditableText({ value, onChange, className = "", placeholder, multiline 
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
       rows={multiline ? 2 : undefined}
-      className={`bg-transparent outline-none w-full placeholder:opacity-40 focus:bg-white/5 rounded px-1 -mx-1 transition-colors ${className}`}
+      className={`bg-transparent outline-none w-full placeholder:opacity-40 focus:bg-black/5 rounded px-1 -mx-1 transition-colors ${className}`}
       style={{ color: T.ink, fontFamily: "Manrope, sans-serif" }}
     />
   );
@@ -216,7 +218,7 @@ function EditableNumber({ value, onChange, className = "", currency }) {
       type="number"
       value={value === 0 ? 0 : value || ""}
       onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
-      className={`bg-transparent outline-none text-right focus:bg-white/5 rounded px-1 -mx-1 transition-colors ${className}`}
+      className={`bg-transparent outline-none text-right focus:bg-black/5 rounded px-1 -mx-1 transition-colors ${className}`}
       style={{ color: T.ink, fontFamily: "Manrope, sans-serif", fontVariantNumeric: "tabular-nums" }}
     />
   );
@@ -227,7 +229,7 @@ function IconBtn({ onClick, children, title, danger }) {
     <button
       onClick={onClick}
       title={title}
-      className="rounded-lg p-2 -m-0.5 transition-colors hover:bg-white/10 active:bg-white/15 shrink-0 min-w-[32px] min-h-[32px] flex items-center justify-center"
+      className="rounded-lg p-2 -m-0.5 transition-colors hover:bg-black/10 active:bg-black/15 shrink-0 min-w-[32px] min-h-[32px] flex items-center justify-center"
       style={{ color: danger ? T.danger : T.inkMute }}
     >
       {children}
@@ -269,7 +271,7 @@ function MobileField({ label, children }) {
    from the couple's own Google Sheet.
    ============================================================ */
 
-const KEY_DATES = {
+const KEY_DATES_SEED = {
   katbKetab: "2027-03-20",
   wedding: "2027-04-03",
   honeymoonStart: "2027-04-04",
@@ -473,8 +475,8 @@ const ITINERARY_B_SEED = [
 
 
 /* ===== p4_seed_bach.jsx ===== */
-function budRow(category, item, qty, unit) {
-  return { id: uid("bg"), category, item, qty, unit, actual: 0 };
+function budRow(category, item, qty, unit, perPerson) {
+  return { id: uid("bg"), category, item, qty, unit, actual: 0, perPerson: !!perPerson };
 }
 function planRow(day, date, plan) {
   return { id: uid("pl"), day, date, plan };
@@ -483,7 +485,8 @@ function planRow(day, date, plan) {
 const BACH_GROOMSMEN_SEED = {
   destination: "Sharm El Sheikh, Egypt",
   dates: "Thu, Mar 11 - Sun, Mar 14, 2027 (4 days / 3 nights)",
-  groupSize: "~3-4 people (incl. groom)",
+  groupSize: 4,
+  groupNote: "incl. groom",
   timingNote:
     "Lands right after Eid al-Fitr (~Mar 9-11, exact date depends on moon sighting) and about a week before the Mar 20 Katb Ketab.",
   options: [
@@ -498,10 +501,10 @@ const BACH_GROOMSMEN_SEED = {
     planRow(4, "Sun, Mar 14, 2027", "Relaxed morning at the hotel beach or a final snorkel, fly back to Cairo"),
   ],
   budget: [
-    budRow("Flights", "Cairo -> Sharm El Sheikh round trip (per person)", 4, 6000),
+    budRow("Flights", "Cairo -> Sharm El Sheikh round trip (per person)", 4, 6000, true),
     budRow("Accommodation", "Resort hotel, Naama Bay, 3 nights (2 rooms)", 3, 4000),
-    budRow("Activities", "Diving/snorkeling boat trip, Ras Mohammed or Tiran (per person)", 4, 1800),
-    budRow("Activities", "Desert safari + quad biking + Bedouin dinner (per person)", 4, 1800),
+    budRow("Activities", "Diving/snorkeling boat trip, Ras Mohammed or Tiran (per person)", 4, 1800, true),
+    budRow("Activities", "Desert safari + quad biking + Bedouin dinner (per person)", 4, 1800, true),
     budRow("Nightlife", "Bars, shisha lounges, one night out (group)", 1, 4000),
     budRow("Food & drinks", "Meals and drinks (per day, group)", 4, 2200),
     budRow("Misc", "Tips, incidentals", 1, 3000),
@@ -512,7 +515,8 @@ const BACH_GROOMSMEN_SEED = {
 const BACH_BRIDESMAIDS_SEED = {
   destination: "Istanbul, Turkey",
   dates: "Thu, Dec 24 - Sun, Dec 27, 2026 (4 days / 3 nights)",
-  groupSize: "8 people (confirmed)",
+  groupSize: 8,
+  groupNote: "confirmed",
   timingNote:
     "Christmas/NY inflates beach and ski destinations hardest; Istanbul's markup is much gentler. December is cool there (highs ~12C/54F) and can be rainy - pack warm layers.",
   options: [
@@ -527,16 +531,29 @@ const BACH_BRIDESMAIDS_SEED = {
     planRow(4, "Sun, Dec 27, 2026", "Leisurely morning at the Spice Bazaar, fly back to Cairo"),
   ],
   budget: [
-    budRow("Flights", "Cairo -> Istanbul round trip (per person)", 8, 250),
+    budRow("Flights", "Cairo -> Istanbul round trip (per person)", 8, 250, true),
     budRow("Accommodation", "Airbnb - Big Flat 5 Rooms, Taksim, 4 nights (whole group)", 1, 984),
-    budRow("Activities", "Bosphorus cruise (per person)", 8, 30),
-    budRow("Activities", "Hammam spa experience (per person)", 8, 60),
-    budRow("Activities", "Topkapi Palace + museum pass (per person)", 8, 40),
+    budRow("Activities", "Bosphorus cruise (per person)", 8, 30, true),
+    budRow("Activities", "Hammam spa experience (per person)", 8, 60, true),
+    budRow("Activities", "Topkapi Palace + museum pass (per person)", 8, 40, true),
     budRow("Food & drinks", "Meals and drinks (per day, group of 8)", 4, 150),
     budRow("Transport", "Local transport - taxis/metro (group)", 1, 150),
     budRow("Misc", "Shopping, tips, incidentals", 1, 400),
   ],
   currency: "USD",
+};
+
+/* ---------------- Gifts (groomsmen / bridesmaids gift boxes) ---------------- */
+const GIFTS_GROOMSMEN_SEED = {
+  budgetPerPerson: 0,
+  groupSize: 4,
+  items: [],
+};
+
+const GIFTS_BRIDESMAIDS_SEED = {
+  budgetPerPerson: 0,
+  groupSize: 8,
+  items: [],
 };
 
 /* ---------------- Istanbul Airbnb comparison (19 listings) ---------------- */
@@ -568,8 +585,8 @@ const BACH_AIRBNB_OPTIONS_SEED = [
 
 
 /* ===== p5_seed_todos_budget.jsx ===== */
-function todo(text, when) {
-  return { id: uid("td"), text, when: when || "", done: false };
+function todo(text, when, deadline) {
+  return { id: uid("td"), text, when: when || "", deadline: deadline || "", done: false };
 }
 
 const TODOS_SEED = {
@@ -603,6 +620,7 @@ const TODOS_SEED = {
     todo("Final dress fitting", "3-4 weeks out"),
     todo("Hair & makeup trial run-through", "3-4 weeks out"),
     todo("Pick up dress, pack for honeymoon", "Final week"),
+    todo("Finalize & order bridesmaids' gift boxes", "Final month"),
   ],
   groom: [
     todo("Start suit shopping / tailor consultations", "4-5 months out"),
@@ -613,6 +631,7 @@ const TODOS_SEED = {
     todo("Confirm groomsmen attire", "3-4 weeks out"),
     todo("Confirm vendor timelines with planner", "Final week"),
     todo("Pack for honeymoon", "Final week"),
+    todo("Finalize & order groomsmen's gift boxes", "Final month"),
   ],
   honeymoon: [
     todo("Book honeymoon flights", ""),
@@ -718,7 +737,7 @@ function daysUntil(dateStr) {
   return diff;
 }
 
-function CountdownStat({ label, dateStr, accent }) {
+function CountdownStat({ label, dateStr, accent, onChangeDate }) {
   const d = daysUntil(dateStr);
   const passed = d < 0;
   return (
@@ -732,6 +751,13 @@ function CountdownStat({ label, dateStr, accent }) {
       <div className="text-xs mt-1.5 tracking-wide" style={{ color: T.inkMute, fontFamily: "Manrope, sans-serif" }}>
         {passed ? `${label} has passed` : `days to ${label}`}
       </div>
+      <input
+        type="date"
+        value={dateStr}
+        onChange={(e) => onChangeDate(e.target.value)}
+        className="mt-1 text-[11px] bg-transparent outline-none rounded px-1 -mx-1 hover:bg-black/5 focus:bg-black/5 transition-colors"
+        style={{ color: T.inkFaint, colorScheme: "light", fontFamily: "Manrope, sans-serif" }}
+      />
     </div>
   );
 }
@@ -753,8 +779,12 @@ function computeHoneymoonTotal(hm) {
   return sub + 0.1 * sub;
 }
 
+function bachLineQty(row, bt) {
+  return row.perPerson ? bt.groupSize || 0 : row.qty || 0;
+}
+
 function computeBachTotal(bt) {
-  return bt.budget.reduce((s, r) => s + (r.qty || 0) * (r.unit || 0), 0);
+  return bt.budget.reduce((s, r) => s + bachLineQty(r, bt) * (r.unit || 0), 0);
 }
 
 function StatCard({ icon: Icon, label, value, sub, accent }) {
@@ -803,11 +833,12 @@ function NavCard({ icon: Icon, title, desc, accent, onClick }) {
   );
 }
 
-function Dashboard({ weddingBudget, honeymoonA, honeymoonB, honeymoonChoice, bachGroom, bachBride, goTo }) {
+function Dashboard({ weddingBudget, honeymoonA, honeymoonB, honeymoonChoice, bachGroom, bachBride, keyDates, setKeyDates, goTo }) {
   const weddingTotal = computeWeddingTotal(weddingBudget);
   const hmTotal = computeHoneymoonTotal(honeymoonChoice === "A" ? honeymoonA : honeymoonB);
   const groomTotal = computeBachTotal(bachGroom);
   const brideTotal = computeBachTotal(bachBride);
+  const patchDate = (key) => (v) => setKeyDates((p) => ({ ...p, [key]: v }));
 
   return (
     <div>
@@ -828,19 +859,19 @@ function Dashboard({ weddingBudget, honeymoonA, honeymoonB, honeymoonChoice, bac
           Cairo to Istanbul to Zanzibar &amp; Seychelles.
         </h1>
         <div className="flex flex-wrap gap-x-8 gap-y-5">
-          <CountdownStat label="the bridesmaids' Istanbul trip" dateStr={KEY_DATES.bachBrideStart} accent={T.rose} />
-          <CountdownStat label="the groomsmen's Sharm trip" dateStr={KEY_DATES.bachGroomStart} accent={T.sage} />
-          <CountdownStat label="the Katb Ketab" dateStr={KEY_DATES.katbKetab} accent={T.goldSoft} />
-          <CountdownStat label="the wedding" dateStr={KEY_DATES.wedding} accent={T.gold} />
-          <CountdownStat label="the honeymoon" dateStr={KEY_DATES.honeymoonStart} accent="#7FB3D5" />
+          <CountdownStat label="the bridesmaids' Istanbul trip" dateStr={keyDates.bachBrideStart} onChangeDate={patchDate("bachBrideStart")} accent={T.rose} />
+          <CountdownStat label="the groomsmen's Sharm trip" dateStr={keyDates.bachGroomStart} onChangeDate={patchDate("bachGroomStart")} accent={T.sage} />
+          <CountdownStat label="the Katb Ketab" dateStr={keyDates.katbKetab} onChangeDate={patchDate("katbKetab")} accent={T.goldSoft} />
+          <CountdownStat label="the wedding" dateStr={keyDates.wedding} onChangeDate={patchDate("wedding")} accent={T.gold} />
+          <CountdownStat label="the honeymoon" dateStr={keyDates.honeymoonStart} onChangeDate={patchDate("honeymoonStart")} accent={T.sky} />
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard icon={Sparkles} label="Wedding budget" value={fmtMoney(weddingTotal, "EGP")} sub={`${weddingBudget.guests} guests`} accent={T.gold} />
-        <StatCard icon={Waves} label="Honeymoon budget" value={fmtMoney(hmTotal, "USD")} sub={`Option ${honeymoonChoice} selected`} accent="#7FB3D5" />
-        <StatCard icon={Users2} label="Bridesmaids trip" value={fmtMoney(brideTotal, "USD")} sub="Istanbul, 8 people" accent={T.rose} />
-        <StatCard icon={Plane} label="Groomsmen trip" value={fmtMoney(groomTotal, "EGP")} sub="Sharm El Sheikh" accent={T.sage} />
+        <StatCard icon={Waves} label="Honeymoon budget" value={fmtMoney(hmTotal, "USD")} sub={`Option ${honeymoonChoice} selected`} accent={T.sky} />
+        <StatCard icon={Users2} label="Bridesmaids trip" value={fmtMoney(brideTotal, "USD")} sub={`Istanbul, ${bachBride.groupSize} people`} accent={T.rose} />
+        <StatCard icon={Plane} label="Groomsmen trip" value={fmtMoney(groomTotal, "EGP")} sub={`Sharm El Sheikh, ${bachGroom.groupSize} people`} accent={T.sage} />
       </div>
 
       <div
@@ -853,8 +884,9 @@ function Dashboard({ weddingBudget, honeymoonA, honeymoonB, honeymoonChoice, bac
         <NavCard icon={Sparkles} title="Wedding budget" desc="Line items, guest count & catering formulas" accent={T.gold} onClick={() => goTo("wedding")} />
         <NavCard icon={Users2} title="Vendor directory" desc="Planners, venues, DJs, photographers" accent={T.goldSoft} onClick={() => goTo("vendors")} />
         <NavCard icon={Palette} title="Inspiration" desc="Mood boards, color palettes, furniture links" accent={T.rose} onClick={() => goTo("inspiration")} />
-        <NavCard icon={Waves} title="Honeymoon" desc="Budget + day-by-day itinerary" accent="#7FB3D5" onClick={() => goTo("honeymoon")} />
+        <NavCard icon={Waves} title="Honeymoon" desc="Budget + day-by-day itinerary" accent={T.sky} onClick={() => goTo("honeymoon")} />
         <NavCard icon={Plane} title="Bach trips" desc="Sharm + Istanbul, incl. Airbnb comparison" accent={T.rose} onClick={() => goTo("bach")} />
+        <NavCard icon={Gift} title="Gifts" desc="Groomsmen & bridesmaids gift boxes, budget per person" accent={T.goldSoft} onClick={() => goTo("gifts")} />
         <NavCard icon={Sparkles} title="To-dos" desc="Add, edit and check off as you go" accent={T.sage} onClick={() => goTo("todos")} />
         <NavCard icon={Waves} title="Monthly budget" desc="Your actual spend, month by month" accent={T.goldSoft} onClick={() => goTo("monthly")} />
       </div>
@@ -979,7 +1011,7 @@ function BudgetTable({ rows, onChange, wb, currency, onAdd, onRemove }) {
       </div>
       <button
         onClick={onAdd}
-        className="mt-3 ml-2 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:bg-white/10"
+        className="mt-3 ml-2 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:bg-black/10"
         style={{ color: T.gold, fontFamily: "Manrope, sans-serif" }}
       >
         <Plus size={14} /> Add line item
@@ -1109,7 +1141,7 @@ function VendorTable({ title, rows, onChange, onAdd, onRemove }) {
       </div>
       <button
         onClick={onAdd}
-        className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:bg-white/10"
+        className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:bg-black/10"
         style={{ color: T.gold, fontFamily: "Manrope, sans-serif" }}
       >
         <Plus size={14} /> Add
@@ -1148,7 +1180,7 @@ function ToggleAB({ choice, setChoice }) {
           className="px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors"
           style={{
             background: choice === opt ? T.gold : "transparent",
-            color: choice === opt ? T.bg : T.inkMute,
+            color: choice === opt ? T.onAccent : T.inkMute,
             fontFamily: "Manrope, sans-serif",
           }}
         >
@@ -1199,7 +1231,7 @@ function HoneymoonBudgetSection({ honeymoonA, setHoneymoonA, honeymoonB, setHone
               <EditableNumber value={r.unit} onChange={(v) => patch(r.id, { unit: v })} className="text-sm w-20" />
             </MobileField>
             <MobileField label="Est.">
-              <span style={{ color: "#7FB3D5", fontVariantNumeric: "tabular-nums" }}>{fmtMoney((r.qty || 0) * (r.unit || 0), "USD")}</span>
+              <span style={{ color: T.sky, fontVariantNumeric: "tabular-nums" }}>{fmtMoney((r.qty || 0) * (r.unit || 0), "USD")}</span>
             </MobileField>
             <MobileField label="Actual">
               <EditableNumber value={r.actual} onChange={(v) => patch(r.id, { actual: v })} className="text-sm w-20" />
@@ -1233,7 +1265,7 @@ function HoneymoonBudgetSection({ honeymoonA, setHoneymoonA, honeymoonB, setHone
                 <td className="py-2 px-2 w-20">
                   <EditableNumber value={r.unit} onChange={(v) => patch(r.id, { unit: v })} className="text-sm w-16" />
                 </td>
-                <td className="py-2 px-2 w-24 text-right" style={{ color: "#7FB3D5", fontVariantNumeric: "tabular-nums" }}>
+                <td className="py-2 px-2 w-24 text-right" style={{ color: T.sky, fontVariantNumeric: "tabular-nums" }}>
                   {fmtMoney((r.qty || 0) * (r.unit || 0), "USD")}
                 </td>
                 <td className="py-2 px-2 w-24">
@@ -1248,11 +1280,11 @@ function HoneymoonBudgetSection({ honeymoonA, setHoneymoonA, honeymoonB, setHone
             ))}
           </tbody>
         </table>
-        <button onClick={add} className="mt-3 ml-2 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-white/10" style={{ color: T.gold }}>
+        <button onClick={add} className="mt-3 ml-2 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-black/10" style={{ color: T.gold }}>
           <Plus size={14} /> Add line item
         </button>
       </div>
-      <button onClick={add} className="sm:hidden mt-1 ml-1 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-white/10" style={{ color: T.gold }}>
+      <button onClick={add} className="sm:hidden mt-1 ml-1 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-black/10" style={{ color: T.gold }}>
         <Plus size={14} /> Add line item
       </button>
       <div className="grid sm:grid-cols-2 gap-4 mt-5 pt-5" style={{ borderTop: `1px solid ${T.lineSoft}` }}>
@@ -1260,7 +1292,7 @@ function HoneymoonBudgetSection({ honeymoonA, setHoneymoonA, honeymoonB, setHone
           <div className="text-xs uppercase tracking-wide font-semibold" style={{ color: T.inkFaint }}>
             Estimated total (incl. 10% buffer)
           </div>
-          <div className="text-2xl" style={{ color: "#7FB3D5", fontFamily: "Fraunces, serif", fontWeight: 600 }}>
+          <div className="text-2xl" style={{ color: T.sky, fontFamily: "Fraunces, serif", fontWeight: 600 }}>
             {fmtMoney(total, "USD")}
           </div>
         </div>
@@ -1295,7 +1327,7 @@ function ItinerarySection({ itineraryA, setItineraryA, itineraryB, setItineraryB
           <div key={d.id} className="rounded-xl p-3.5 flex flex-wrap gap-3 items-start" style={{ background: T.bgSoft }}>
             <div
               className="rounded-lg px-2.5 py-1 text-xs font-bold shrink-0"
-              style={{ background: `${"#7FB3D5"}22`, color: "#7FB3D5", fontFamily: "Manrope, sans-serif" }}
+              style={{ background: `${T.sky}22`, color: T.sky, fontFamily: "Manrope, sans-serif" }}
             >
               Day {d.day}
             </div>
@@ -1347,7 +1379,19 @@ function TripHeader({ trip, setTrip, accent }) {
           <div className="text-xs uppercase tracking-wide font-semibold mb-1" style={{ color: T.inkFaint }}>
             Group size
           </div>
-          <EditableText value={trip.groupSize} onChange={(v) => setTrip((p) => ({ ...p, groupSize: v }))} className="text-sm" />
+          <div className="flex items-center gap-1.5">
+            <EditableNumber value={trip.groupSize} onChange={(v) => setTrip((p) => ({ ...p, groupSize: v }))} className="text-sm w-10" />
+            <span className="text-sm" style={{ color: T.inkMute }}>
+              people
+            </span>
+          </div>
+          <div className="text-xs mt-0.5" style={{ color: T.inkFaint }}>
+            <EditableText
+              value={trip.groupNote}
+              onChange={(v) => setTrip((p) => ({ ...p, groupNote: v }))}
+              placeholder="e.g. incl. groom"
+            />
+          </div>
         </div>
       </div>
       <div className="mt-3 text-xs italic" style={{ color: T.inkMute }}>
@@ -1391,7 +1435,7 @@ function OptionsTable({ trip, setTrip, accent }) {
           </div>
         ))}
       </div>
-      <button onClick={add} className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-white/10" style={{ color: T.gold }}>
+      <button onClick={add} className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-black/10" style={{ color: T.gold }}>
         <Plus size={14} /> Add option
       </button>
     </Card>
@@ -1429,7 +1473,7 @@ function TripBudget({ trip, setTrip, accent }) {
   const add = () =>
     setTrip((prev) => ({ ...prev, budget: [...prev.budget, { id: uid("bg"), category: "New", item: "New item", qty: 1, unit: 0, actual: 0 }] }));
   const remove = (id) => setTrip((prev) => ({ ...prev, budget: prev.budget.filter((r) => r.id !== id) }));
-  const sub = trip.budget.reduce((s, r) => s + (r.qty || 0) * (r.unit || 0), 0);
+  const sub = trip.budget.reduce((s, r) => s + bachLineQty(r, trip) * (r.unit || 0), 0);
   const contingency = 0.1 * sub;
   const total = sub + contingency;
 
@@ -1451,20 +1495,26 @@ function TripBudget({ trip, setTrip, accent }) {
               <EditableText value={r.category} onChange={(v) => patch(r.id, { category: v })} className="text-sm text-right" />
             </MobileField>
             <MobileField label="Qty">
-              <EditableNumber value={r.qty} onChange={(v) => patch(r.id, { qty: v })} className="text-sm w-16" />
+              {r.perPerson ? (
+                <span className="text-xs italic" style={{ color: T.inkFaint }}>
+                  {trip.groupSize} pax
+                </span>
+              ) : (
+                <EditableNumber value={r.qty} onChange={(v) => patch(r.id, { qty: v })} className="text-sm w-16" />
+              )}
             </MobileField>
             <MobileField label="Unit">
               <EditableNumber value={r.unit} onChange={(v) => patch(r.id, { unit: v })} className="text-sm w-20" />
             </MobileField>
             <MobileField label="Est.">
-              <span style={{ color: accent, fontVariantNumeric: "tabular-nums" }}>{fmtMoney((r.qty || 0) * (r.unit || 0), trip.currency)}</span>
+              <span style={{ color: accent, fontVariantNumeric: "tabular-nums" }}>{fmtMoney(bachLineQty(r, trip) * (r.unit || 0), trip.currency)}</span>
             </MobileField>
             <MobileField label="Actual">
               <EditableNumber value={r.actual} onChange={(v) => patch(r.id, { actual: v })} className="text-sm w-20" />
             </MobileField>
           </div>
         ))}
-        <button onClick={add} className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-white/10" style={{ color: T.gold }}>
+        <button onClick={add} className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-black/10" style={{ color: T.gold }}>
           <Plus size={14} /> Add line item
         </button>
       </div>
@@ -1489,13 +1539,19 @@ function TripBudget({ trip, setTrip, accent }) {
                   <EditableText value={r.item} onChange={(v) => patch(r.id, { item: v })} className="text-sm" />
                 </td>
                 <td className="py-2 px-2 w-14">
-                  <EditableNumber value={r.qty} onChange={(v) => patch(r.id, { qty: v })} className="text-sm w-12" />
+                  {r.perPerson ? (
+                    <span className="text-xs italic" style={{ color: T.inkFaint }}>
+                      {trip.groupSize} pax
+                    </span>
+                  ) : (
+                    <EditableNumber value={r.qty} onChange={(v) => patch(r.id, { qty: v })} className="text-sm w-12" />
+                  )}
                 </td>
                 <td className="py-2 px-2 w-20">
                   <EditableNumber value={r.unit} onChange={(v) => patch(r.id, { unit: v })} className="text-sm w-16" />
                 </td>
                 <td className="py-2 px-2 w-24 text-right" style={{ color: accent, fontVariantNumeric: "tabular-nums" }}>
-                  {fmtMoney((r.qty || 0) * (r.unit || 0), trip.currency)}
+                  {fmtMoney(bachLineQty(r, trip) * (r.unit || 0), trip.currency)}
                 </td>
                 <td className="py-2 px-2 w-24">
                   <EditableNumber value={r.actual} onChange={(v) => patch(r.id, { actual: v })} className="text-sm w-20" />
@@ -1509,7 +1565,7 @@ function TripBudget({ trip, setTrip, accent }) {
             ))}
           </tbody>
         </table>
-        <button onClick={add} className="mt-3 ml-2 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-white/10" style={{ color: T.gold }}>
+        <button onClick={add} className="mt-3 ml-2 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-black/10" style={{ color: T.gold }}>
           <Plus size={14} /> Add line item
         </button>
       </div>
@@ -1527,7 +1583,7 @@ function TripBudget({ trip, setTrip, accent }) {
   );
 }
 
-function AirbnbComparison({ options, setOptions }) {
+function AirbnbComparison({ options, setOptions, groupSize, dates }) {
   const [sortByPrice, setSortByPrice] = useState(false);
   const patch = (id, p) => setOptions((prev) => prev.map((o) => (o.id === id ? { ...o, ...p } : o)));
   const remove = (id) => setOptions((prev) => prev.filter((o) => o.id !== id));
@@ -1543,11 +1599,11 @@ function AirbnbComparison({ options, setOptions }) {
     <Card className="p-5">
       <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
         <div className="text-sm font-semibold" style={{ color: T.ink, fontFamily: "Fraunces, serif" }}>
-          Airbnb options comparison (8 guests, 23-27 Dec 2026)
+          Airbnb options comparison ({groupSize} guests, {dates})
         </div>
         <button
           onClick={() => setSortByPrice((s) => !s)}
-          className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:bg-white/10"
+          className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:bg-black/10"
           style={{ color: T.gold, border: `1px solid ${T.lineSoft}` }}
         >
           {sortByPrice ? "Showing: cheapest first" : "Sort by price / person"}
@@ -1600,7 +1656,7 @@ function AirbnbComparison({ options, setOptions }) {
           </div>
         ))}
       </div>
-      <button onClick={add} className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-white/10" style={{ color: T.gold }}>
+      <button onClick={add} className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-black/10" style={{ color: T.gold }}>
         <Plus size={14} /> Add listing
       </button>
     </Card>
@@ -1621,7 +1677,7 @@ function BachTrips({ bachGroom, setBachGroom, bachBride, setBachBride, airbnbOpt
             key={t.k}
             onClick={() => setTab(t.k)}
             className="px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors"
-            style={{ background: tab === t.k ? T.rose : "transparent", color: tab === t.k ? T.bg : T.inkMute }}
+            style={{ background: tab === t.k ? T.rose : "transparent", color: tab === t.k ? T.onAccent : T.inkMute }}
           >
             {t.label}
           </button>
@@ -1631,7 +1687,7 @@ function BachTrips({ bachGroom, setBachGroom, bachBride, setBachBride, airbnbOpt
       {tab === "bride" ? (
         <>
           <TripHeader trip={bachBride} setTrip={setBachBride} accent={T.rose} />
-          <AirbnbComparison options={airbnbOptions} setOptions={setAirbnbOptions} />
+          <AirbnbComparison options={airbnbOptions} setOptions={setAirbnbOptions} groupSize={bachBride.groupSize} dates={bachBride.dates} />
           <div className="h-5" />
           <OptionsTable trip={bachBride} setTrip={setBachBride} accent={T.rose} />
           <PlanList trip={bachBride} setTrip={setBachBride} />
@@ -1644,6 +1700,128 @@ function BachTrips({ bachGroom, setBachGroom, bachBride, setBachBride, airbnbOpt
           <PlanList trip={bachGroom} setTrip={setBachGroom} />
           <TripBudget trip={bachGroom} setTrip={setBachGroom} accent={T.sage} />
         </>
+      )}
+    </div>
+  );
+}
+
+
+/* ===== p9b_gifts.jsx ===== */
+function GiftBox({ gifts, setGifts, accent, label }) {
+  const patchItem = (id, p) => setGifts((prev) => ({ ...prev, items: prev.items.map((it) => (it.id === id ? { ...it, ...p } : it)) }));
+  const addItem = () => setGifts((prev) => ({ ...prev, items: [...prev.items, { id: uid("gi"), name: "New item", price: 0 }] }));
+  const removeItem = (id) => setGifts((prev) => ({ ...prev, items: prev.items.filter((it) => it.id !== id) }));
+
+  const boxTotal = gifts.items.reduce((s, it) => s + (it.price || 0), 0);
+  const totalSpend = boxTotal * (gifts.groupSize || 0);
+  const diff = boxTotal - (gifts.budgetPerPerson || 0);
+
+  return (
+    <div>
+      <Card className="p-5 mb-5" accent={accent}>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <div className="text-xs uppercase tracking-wide font-semibold mb-1" style={{ color: T.inkFaint }}>
+              Budget per person
+            </div>
+            <EditableNumber
+              value={gifts.budgetPerPerson}
+              onChange={(v) => setGifts((p) => ({ ...p, budgetPerPerson: v }))}
+              className="text-lg font-semibold w-28"
+            />
+          </div>
+          <div>
+            <div className="text-xs uppercase tracking-wide font-semibold mb-1" style={{ color: T.inkFaint }}>
+              Group size
+            </div>
+            <div className="flex items-center gap-1.5">
+              <EditableNumber value={gifts.groupSize} onChange={(v) => setGifts((p) => ({ ...p, groupSize: v }))} className="text-lg font-semibold w-14" />
+              <span className="text-sm" style={{ color: T.inkMute }}>
+                people
+              </span>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="p-5">
+        <div className="text-sm font-semibold mb-4" style={{ color: T.ink, fontFamily: "Fraunces, serif" }}>
+          Gift box - {label}
+        </div>
+        <div className="space-y-2">
+          {gifts.items.map((it) => (
+            <div key={it.id} className="rounded-xl p-3 flex items-center gap-3" style={{ background: T.bgSoft }}>
+              <div className="flex-1 min-w-0">
+                <EditableText value={it.name} onChange={(v) => patchItem(it.id, { name: v })} className="text-sm" />
+              </div>
+              <EditableNumber value={it.price} onChange={(v) => patchItem(it.id, { price: v })} className="text-sm w-24 text-right" />
+              <IconBtn onClick={() => removeItem(it.id)} danger title="Remove">
+                <Trash2 size={14} />
+              </IconBtn>
+            </div>
+          ))}
+          {gifts.items.length === 0 && (
+            <div className="text-xs italic py-2" style={{ color: T.inkFaint }}>
+              No items yet - add the first gift box element below.
+            </div>
+          )}
+        </div>
+        <button onClick={addItem} className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-black/5" style={{ color: T.gold }}>
+          <Plus size={14} /> Add item
+        </button>
+
+        <div className="mt-4 pt-4 flex flex-wrap gap-8" style={{ borderTop: `1px solid ${T.lineSoft}` }}>
+          <div>
+            <div className="text-xs uppercase tracking-wide font-semibold" style={{ color: T.inkFaint }}>
+              Cost per box
+            </div>
+            <div className="text-2xl" style={{ color: accent, fontFamily: "Fraunces, serif", fontWeight: 600 }}>
+              {fmtMoney(boxTotal, "EGP")}
+            </div>
+            {gifts.budgetPerPerson > 0 && (
+              <div className="text-xs mt-0.5" style={{ color: diff > 0 ? T.danger : T.sage }}>
+                {diff > 0 ? `${fmtMoney(diff, "EGP")} over budget` : `${fmtMoney(-diff, "EGP")} under budget`}
+              </div>
+            )}
+          </div>
+          <div>
+            <div className="text-xs uppercase tracking-wide font-semibold" style={{ color: T.inkFaint }}>
+              Total for {gifts.groupSize || 0} people
+            </div>
+            <div className="text-2xl" style={{ color: accent, fontFamily: "Fraunces, serif", fontWeight: 600 }}>
+              {fmtMoney(totalSpend, "EGP")}
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function Gifts({ giftsGroom, setGiftsGroom, giftsBride, setGiftsBride }) {
+  const [tab, setTab] = useState("bride");
+  return (
+    <div>
+      <SectionHeading eyebrow="One gift box design per side" title="Gifts" />
+      <div className="inline-flex rounded-xl p-1 mb-5" style={{ background: T.bgSoft, border: `1px solid ${T.lineSoft}` }}>
+        {[
+          { k: "bride", label: "Bridesmaids" },
+          { k: "groom", label: "Groomsmen" },
+        ].map((t) => (
+          <button
+            key={t.k}
+            onClick={() => setTab(t.k)}
+            className="px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+            style={{ background: tab === t.k ? T.rose : "transparent", color: tab === t.k ? T.onAccent : T.inkMute }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {tab === "bride" ? (
+        <GiftBox gifts={giftsBride} setGifts={setGiftsBride} accent={T.rose} label="Bridesmaids" />
+      ) : (
+        <GiftBox gifts={giftsGroom} setGifts={setGiftsGroom} accent={T.sage} label="Groomsmen" />
       )}
     </div>
   );
@@ -1679,13 +1857,13 @@ function TodoCategoryCard({ catKey, items, onAdd, onToggle, onEdit, onRemove }) 
 
       <div className="space-y-1.5 mb-3">
         {items.map((it) => (
-          <div key={it.id} className="flex items-start gap-2 group rounded-lg px-1.5 py-1 -mx-1.5 hover:bg-white/5">
+          <div key={it.id} className="flex items-start gap-2 group rounded-lg px-1.5 py-1 -mx-1.5 hover:bg-black/5">
             <button
               onClick={() => onToggle(it.id)}
               className="mt-0.5 shrink-0 w-4 h-4 rounded flex items-center justify-center transition-colors"
               style={{ border: `1.5px solid ${it.done ? meta.color : T.inkFaint}`, background: it.done ? meta.color : "transparent" }}
             >
-              {it.done && <Check size={11} color={T.bg} strokeWidth={3} />}
+              {it.done && <Check size={11} color={T.onAccent} strokeWidth={3} />}
             </button>
             <div className="flex-1 min-w-0">
               <EditableText
@@ -1693,11 +1871,30 @@ function TodoCategoryCard({ catKey, items, onAdd, onToggle, onEdit, onRemove }) 
                 onChange={(v) => onEdit(it.id, { text: v })}
                 className={`text-sm ${it.done ? "line-through opacity-50" : ""}`}
               />
-              {it.when && (
-                <div className="text-[11px]" style={{ color: T.inkFaint }}>
-                  {it.when}
-                </div>
-              )}
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                {it.when && (
+                  <div className="text-[11px]" style={{ color: T.inkFaint }}>
+                    {it.when}
+                  </div>
+                )}
+                <input
+                  type="date"
+                  value={it.deadline || ""}
+                  onChange={(e) => onEdit(it.id, { deadline: e.target.value })}
+                  className="text-[11px] bg-transparent outline-none rounded px-1 -mx-1 hover:bg-black/5 focus:bg-black/5 transition-colors"
+                  style={{ color: T.inkFaint, colorScheme: "light" }}
+                />
+                {it.deadline &&
+                  !it.done &&
+                  (() => {
+                    const d = daysUntil(it.deadline);
+                    return (
+                      <span className="text-[11px] font-semibold" style={{ color: d < 0 ? T.danger : T.inkFaint }}>
+                        {d < 0 ? `${Math.abs(d)}d overdue` : d === 0 ? "due today" : `${d}d left`}
+                      </span>
+                    );
+                  })()}
+              </div>
             </div>
             <IconBtn onClick={() => onRemove(it.id)} danger title="Remove">
               <Trash2 size={13} />
@@ -1720,7 +1917,7 @@ function TodoCategoryCard({ catKey, items, onAdd, onToggle, onEdit, onRemove }) 
           className="flex-1 text-sm bg-transparent outline-none rounded-lg px-2 py-1.5 placeholder:opacity-40"
           style={{ color: T.ink, border: `1px solid ${T.lineSoft}`, fontFamily: "Manrope, sans-serif" }}
         />
-        <button onClick={submit} className="rounded-lg px-2.5 transition-colors hover:bg-white/10" style={{ color: meta.color }}>
+        <button onClick={submit} className="rounded-lg px-2.5 transition-colors hover:bg-black/10" style={{ color: meta.color }}>
           <Plus size={16} />
         </button>
       </div>
@@ -1730,7 +1927,7 @@ function TodoCategoryCard({ catKey, items, onAdd, onToggle, onEdit, onRemove }) 
 
 function Todos({ todos, setTodos }) {
   const add = (catKey) => (text) =>
-    setTodos((prev) => ({ ...prev, [catKey]: [...prev[catKey], { id: uid("td"), text, when: "", done: false }] }));
+    setTodos((prev) => ({ ...prev, [catKey]: [...prev[catKey], { id: uid("td"), text, when: "", deadline: "", done: false }] }));
   const toggle = (catKey) => (id) =>
     setTodos((prev) => ({ ...prev, [catKey]: prev[catKey].map((t) => (t.id === id ? { ...t, done: !t.done } : t)) }));
   const edit = (catKey) => (id, p) =>
@@ -1822,7 +2019,7 @@ function BookingGroup({ title, rows, onChange, onAdd, onRemove }) {
             </div>
           );
         })}
-        <button onClick={onAdd} className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-white/10" style={{ color: T.gold }}>
+        <button onClick={onAdd} className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-black/10" style={{ color: T.gold }}>
           <Plus size={14} /> Add booking
         </button>
       </div>
@@ -1887,7 +2084,7 @@ function BookingGroup({ title, rows, onChange, onAdd, onRemove }) {
             })}
           </tbody>
         </table>
-        <button onClick={onAdd} className="mt-3 ml-2 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-white/10" style={{ color: T.gold }}>
+        <button onClick={onAdd} className="mt-3 ml-2 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-black/10" style={{ color: T.gold }}>
           <Plus size={14} /> Add booking
         </button>
       </div>
@@ -1961,7 +2158,7 @@ function MonthlyBudget({ monthly, setMonthly }) {
         right={
           <button
             onClick={() => setCollapsed((c) => !c)}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:bg-white/10"
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:bg-black/10"
             style={{ color: T.gold, border: `1px solid ${T.lineSoft}` }}
           >
             {collapsed ? "Show all categories (incl. home renovation)" : "Show wedding-related only"}
@@ -1998,7 +2195,7 @@ function MonthlyBudget({ monthly, setMonthly }) {
           <div className="text-xs uppercase tracking-wide font-semibold" style={{ color: T.inkFaint }}>
             Honeymoon spend
           </div>
-          <div className="text-xl" style={{ color: "#7FB3D5", fontFamily: "Fraunces, serif", fontWeight: 600 }}>
+          <div className="text-xl" style={{ color: T.sky, fontFamily: "Fraunces, serif", fontWeight: 600 }}>
             {fmtMoney(grand["Honeymoon"] || 0, "GBP")}
           </div>
         </Card>
@@ -2033,7 +2230,7 @@ function MonthlyBudget({ monthly, setMonthly }) {
             </div>
           );
         })}
-        <button onClick={addMonth} className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-white/10" style={{ color: T.gold }}>
+        <button onClick={addMonth} className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-black/10" style={{ color: T.gold }}>
           <Plus size={14} /> Add month
         </button>
       </div>
@@ -2100,7 +2297,7 @@ function MonthlyBudget({ monthly, setMonthly }) {
             </tbody>
           </table>
         </div>
-        <button onClick={addMonth} className="mt-3 ml-2 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-white/10" style={{ color: T.gold }}>
+        <button onClick={addMonth} className="mt-3 ml-2 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-black/10" style={{ color: T.gold }}>
           <Plus size={14} /> Add month
         </button>
       </Card>
@@ -2176,7 +2373,7 @@ function InspoCard({ item, onChange, onRemove, accent }) {
         <button
           onClick={() => setEditing(false)}
           className="w-full text-xs font-semibold rounded-lg py-1.5 transition-colors hover:opacity-90"
-          style={{ background: accent, color: T.bg }}
+          style={{ background: accent, color: T.onAccent }}
         >
           Done
         </button>
@@ -2248,7 +2445,7 @@ function InspirationBoard({ inspiration, setInspiration }) {
     return (
       <div>
         <SectionHeading eyebrow="Mood boards, links & swatches" title="Inspiration" />
-        <button onClick={addCategory} className="text-sm font-semibold px-4 py-2 rounded-lg" style={{ background: T.gold, color: T.bg }}>
+        <button onClick={addCategory} className="text-sm font-semibold px-4 py-2 rounded-lg" style={{ background: T.gold, color: T.onAccent }}>
           + Add your first category
         </button>
       </div>
@@ -2267,7 +2464,7 @@ function InspirationBoard({ inspiration, setInspiration }) {
             className="px-3.5 py-1.5 rounded-xl text-sm font-semibold transition-colors"
             style={{
               background: c.id === cat.id ? T.gold : T.bgSoft,
-              color: c.id === cat.id ? T.bg : T.inkMute,
+              color: c.id === cat.id ? T.onAccent : T.inkMute,
               border: `1px solid ${c.id === cat.id ? T.gold : T.lineSoft}`,
             }}
           >
@@ -2277,7 +2474,7 @@ function InspirationBoard({ inspiration, setInspiration }) {
         ))}
         <button
           onClick={addCategory}
-          className="px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors hover:bg-white/5"
+          className="px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors hover:bg-black/5"
           style={{ color: T.gold, border: `1px dashed ${T.lineSoft}` }}
         >
           <Plus size={14} className="inline -mt-0.5" /> Category
@@ -2301,7 +2498,7 @@ function InspirationBoard({ inspiration, setInspiration }) {
         ))}
         <button
           onClick={addItem}
-          className="rounded-2xl flex flex-col items-center justify-center gap-2 py-10 transition-colors hover:bg-white/5"
+          className="rounded-2xl flex flex-col items-center justify-center gap-2 py-10 transition-colors hover:bg-black/5"
           style={{ border: `1.5px dashed ${T.lineSoft}`, color: T.inkFaint }}
         >
           <Plus size={22} />
@@ -2321,6 +2518,7 @@ const NAV = [
   { key: "inspiration", label: "Inspiration", icon: Palette },
   { key: "honeymoon", label: "Honeymoon", icon: Waves },
   { key: "bach", label: "Bach Trips", icon: Plane },
+  { key: "gifts", label: "Gifts", icon: Gift },
   { key: "todos", label: "To-Dos", icon: ListChecks },
   { key: "bookings", label: "Bookings", icon: ClipboardCheck },
   { key: "monthly", label: "Monthly Budget", icon: PiggyBank },
@@ -2348,12 +2546,18 @@ function App() {
   const [bookings, setBookings, l11, reload11] = useShared("wt-bookings", BOOKING_TRACKER_SEED);
   const [monthly, setMonthly, l12, reload12] = useShared("wt-monthly-budget", MONTHLY_BUDGET_SEED);
   const [inspiration, setInspiration, l13, reload13] = useShared("wt-inspiration", INSPIRATION_SEED);
+  const [keyDates, setKeyDates, l14, reload14] = useShared("wt-key-dates", KEY_DATES_SEED);
+  const [giftsGroom, setGiftsGroom, l15, reload15] = useShared("wt-gifts-groom", GIFTS_GROOMSMEN_SEED);
+  const [giftsBride, setGiftsBride, l16, reload16] = useShared("wt-gifts-bride", GIFTS_BRIDESMAIDS_SEED);
 
-  const allLoaded = [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13].every(Boolean);
+  const allLoaded = [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16].every(Boolean);
 
   const refreshAll = async () => {
     setSyncing(true);
-    await Promise.all([reload1(), reload2(), reload3(), reload4(), reload5(), reload6(), reload7(), reload8(), reload9(), reload10(), reload11(), reload12(), reload13()]);
+    await Promise.all([
+      reload1(), reload2(), reload3(), reload4(), reload5(), reload6(), reload7(), reload8(),
+      reload9(), reload10(), reload11(), reload12(), reload13(), reload14(), reload15(), reload16(),
+    ]);
     setTimeout(() => setSyncing(false), 500);
   };
 
@@ -2406,7 +2610,7 @@ function App() {
         </nav>
         <button
           onClick={refreshAll}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-colors hover:bg-white/5"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-colors hover:bg-black/5"
           style={{ color: T.inkFaint }}
         >
           <RefreshCw size={13} className={syncing ? "animate-spin" : ""} />
@@ -2453,6 +2657,8 @@ function App() {
             honeymoonChoice={honeymoonChoice}
             bachGroom={bachGroom}
             bachBride={bachBride}
+            keyDates={keyDates}
+            setKeyDates={setKeyDates}
             goTo={goTo}
           />
         )}
@@ -2485,6 +2691,9 @@ function App() {
             airbnbOptions={airbnbOptions}
             setAirbnbOptions={setAirbnbOptions}
           />
+        )}
+        {page === "gifts" && (
+          <Gifts giftsGroom={giftsGroom} setGiftsGroom={setGiftsGroom} giftsBride={giftsBride} setGiftsBride={setGiftsBride} />
         )}
         {page === "todos" && <Todos todos={todos} setTodos={setTodos} />}
         {page === "bookings" && <BookingTracker bookings={bookings} setBookings={setBookings} />}
